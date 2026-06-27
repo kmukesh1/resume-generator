@@ -31,10 +31,6 @@
         .entry {
             transition: all 0.2s ease;
         }
-        .preview-text {
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
         @media print {
             body * { visibility: hidden; }
             #resume-preview, #resume-preview * { visibility: visible; }
@@ -110,7 +106,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs font-medium text-zinc-500">Email</label>
-                                <input id="email" type="email" value="mukesh@sm it.edu" 
+                                <input id="email" type="email" value="mukesh@smit.edu" 
                                        oninput="updatePreview()" 
                                        class="form-input w-full mt-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm">
                             </div>
@@ -252,7 +248,6 @@
 
             const data = JSON.parse(saved);
 
-            // Personal
             if (data.personal) {
                 document.getElementById('fullName').value = data.personal.fullName || '';
                 document.getElementById('jobTitle').value = data.personal.jobTitle || '';
@@ -262,29 +257,14 @@
                 document.getElementById('linkedin').value = data.personal.linkedin || '';
             }
 
-            // Education
-            if (data.education) {
-                educationData = data.education;
-                renderEducationList();
-            }
-
-            // Experience
-            if (data.experience) {
-                experienceData = data.experience;
-                renderExperienceList();
-            }
-
-            // Skills
-            if (data.skills) {
-                skillsData = data.skills;
-                renderSkills();
-            }
+            if (data.education) { educationData = data.education; renderEducationList(); }
+            if (data.experience) { experienceData = data.experience; renderExperienceList(); }
+            if (data.skills) { skillsData = data.skills; renderSkills(); }
 
             updatePreview();
         }
 
         function updatePreview() {
-            // Personal
             document.getElementById('previewName').innerText = document.getElementById('fullName').value || 'Your Name';
             document.getElementById('previewTitle').innerText = document.getElementById('jobTitle').value || 'Your Title';
             document.getElementById('previewEmail').innerText = document.getElementById('email').value;
@@ -343,12 +323,11 @@
             saveToLocalStorage();
         }
 
-        // Education Functions
         function addEducation() {
-            const degree = prompt('Degree / Course (e.g. PhD in Quantum AI)') || 'PhD Quantum AI';
+            const degree = prompt('Degree / Course') || 'PhD in Quantum AI';
             const institution = prompt('Institution') || 'Vel Tech University';
-            const year = prompt('Year / Duration') || '2023 - 2026';
-            const score = prompt('CGPA / Percentage (optional)') || '';
+            const year = prompt('Year') || '2024 - Present';
+            const score = prompt('Score / CGPA (optional)') || '';
 
             educationData.push({ degree, institution, year, score });
             renderEducationList();
@@ -358,7 +337,6 @@
         function renderEducationList() {
             const container = document.getElementById('educationList');
             container.innerHTML = '';
-
             educationData.forEach((edu, index) => {
                 const div = document.createElement('div');
                 div.className = 'entry bg-zinc-50 dark:bg-zinc-800 p-3 rounded-2xl text-sm';
@@ -381,12 +359,11 @@
             updatePreview();
         }
 
-        // Experience Functions
         function addExperience() {
-            const role = prompt('Job Title / Role') || 'Assistant Professor';
-            const company = prompt('Company / Institution') || 'SMIT College';
+            const role = prompt('Job Title') || 'Assistant Professor';
+            const company = prompt('Company') || 'SMIT College';
             const duration = prompt('Duration') || '2024 - Present';
-            const description = prompt('Short description') || 'Teaching CSE subjects and guiding research projects.';
+            const description = prompt('Description') || 'Teaching and research in AI/ML.';
 
             experienceData.push({ role, company, duration, description });
             renderExperienceList();
@@ -396,7 +373,6 @@
         function renderExperienceList() {
             const container = document.getElementById('experienceList');
             container.innerHTML = '';
-
             experienceData.forEach((exp, index) => {
                 const div = document.createElement('div');
                 div.className = 'entry bg-zinc-50 dark:bg-zinc-800 p-3 rounded-2xl text-sm';
@@ -418,7 +394,6 @@
             updatePreview();
         }
 
-        // Skills
         function addSkill() {
             const input = document.getElementById('skillInput');
             if (!input.value.trim()) return;
@@ -445,46 +420,135 @@
             updatePreview();
         }
 
+        // ==================== IMPROVED PDF EXPORT ====================
         function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
-            const name = document.getElementById('fullName').value || 'Resume';
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 20;
+            let y = 25;
+
+            const name = document.getElementById('fullName').value || 'Your Name';
             const title = document.getElementById('jobTitle').value || '';
-            
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const location = document.getElementById('location').value;
+            const linkedin = document.getElementById('linkedin').value;
+
+            // Header
             doc.setFontSize(22);
-            doc.text(name, 105, 20, { align: 'center' });
-            
-            doc.setFontSize(14);
-            doc.text(title, 105, 28, { align: 'center' });
-            
-            doc.setFontSize(11);
-            let y = 45;
-            
-            // Education
-            doc.text('EDUCATION', 20, y);
+            doc.setFont(undefined, 'bold');
+            doc.text(name, pageWidth / 2, y, { align: 'center' });
             y += 8;
-            educationData.forEach(edu => {
-                doc.text(`${edu.degree} - ${edu.institution} (${edu.year})`, 20, y);
-                y += 7;
-            });
-            
-            y += 5;
-            doc.text('EXPERIENCE', 20, y);
-            y += 8;
-            experienceData.forEach(exp => {
-                doc.text(`${exp.role} at ${exp.company} (${exp.duration})`, 20, y);
-                y += 6;
-                doc.text(exp.description, 25, y);
+
+            if (title) {
+                doc.setFontSize(13);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(124, 58, 237);
+                doc.text(title, pageWidth / 2, y, { align: 'center' });
                 y += 8;
-            });
-            
-            y += 5;
-            doc.text('SKILLS', 20, y);
-            y += 8;
-            doc.text(skillsData.join(', '), 20, y);
-            
-            doc.save(`${name.replace(/ /g, '_')}_Resume.pdf`);
+            }
+
+            // Contact line
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            let contactLine = `${email}  |  ${phone}  |  ${location}`;
+            if (linkedin) contactLine += `  |  ${linkedin}`;
+            doc.text(contactLine, pageWidth / 2, y, { align: 'center' });
+            y += 10;
+
+            // Divider line
+            doc.setDrawColor(200, 200, 200);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 10;
+
+            // Education
+            if (educationData.length > 0) {
+                doc.setFontSize(13);
+                doc.setTextColor(124, 58, 237);
+                doc.setFont(undefined, 'bold');
+                doc.text('EDUCATION', margin, y);
+                y += 7;
+
+                doc.setDrawColor(220, 220, 220);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 8;
+
+                doc.setTextColor(40, 40, 40);
+                educationData.forEach(edu => {
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(edu.degree, margin, y);
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(edu.year, pageWidth - margin, y, { align: 'right' });
+                    y += 6;
+                    doc.text(edu.institution, margin, y);
+                    y += 6;
+                    if (edu.score) {
+                        doc.setFontSize(9);
+                        doc.text(edu.score, margin, y);
+                        y += 6;
+                    }
+                    y += 4;
+                });
+                y += 6;
+            }
+
+            // Experience
+            if (experienceData.length > 0) {
+                doc.setFontSize(13);
+                doc.setTextColor(124, 58, 237);
+                doc.setFont(undefined, 'bold');
+                doc.text('EXPERIENCE', margin, y);
+                y += 7;
+
+                doc.setDrawColor(220, 220, 220);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 8;
+
+                doc.setTextColor(40, 40, 40);
+                experienceData.forEach(exp => {
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(exp.role, margin, y);
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(exp.duration, pageWidth - margin, y, { align: 'right' });
+                    y += 6;
+                    doc.text(exp.company, margin, y);
+                    y += 6;
+                    
+                    // Description (wrap text)
+                    const splitDesc = doc.splitTextToSize(exp.description, pageWidth - margin * 2 - 10);
+                    doc.text(splitDesc, margin + 5, y);
+                    y += (splitDesc.length * 6) + 6;
+                });
+                y += 4;
+            }
+
+            // Skills
+            if (skillsData.length > 0) {
+                doc.setFontSize(13);
+                doc.setTextColor(124, 58, 237);
+                doc.setFont(undefined, 'bold');
+                doc.text('SKILLS', margin, y);
+                y += 7;
+
+                doc.setDrawColor(220, 220, 220);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 8;
+
+                doc.setTextColor(40, 40, 40);
+                doc.setFontSize(10);
+                const skillsText = skillsData.join('   •   ');
+                const splitSkills = doc.splitTextToSize(skillsText, pageWidth - margin * 2);
+                doc.text(splitSkills, margin, y);
+            }
+
+            // Save
+            const fileName = name.replace(/ /g, '_') + '_Resume.pdf';
+            doc.save(fileName);
         }
 
         function toggleDarkMode() {
@@ -499,35 +563,27 @@
         }
 
         function init() {
-            // Load saved data
             loadFromLocalStorage();
-
-            // Initial preview
             updatePreview();
 
-            // Dark mode
             if (localStorage.getItem('darkMode') === 'true') {
                 document.documentElement.classList.add('dark');
             }
 
-            // Auto update on input
             const inputs = document.querySelectorAll('#fullName, #jobTitle, #email, #phone, #location, #linkedin');
-            inputs.forEach(input => {
-                input.addEventListener('input', updatePreview);
-            });
+            inputs.forEach(input => input.addEventListener('input', updatePreview));
 
-            // Add some sample data if empty
+            // Default sample data
             if (educationData.length === 0 && experienceData.length === 0) {
-                // Sample data for first time
                 educationData = [
                     { degree: "PhD in Quantum AI (Pursuing)", institution: "Vel Tech University", year: "2024 - Present", score: "CGPA: 8.2" },
                     { degree: "M.Tech Computer Science", institution: "Vel Tech", year: "2021 - 2023", score: "CGPA: 7.29" }
                 ];
                 experienceData = [
-                    { role: "Assistant Professor", company: "SMIT College", duration: "2024 - Present", description: "Teaching CSE subjects and guiding student projects in AI/ML." },
-                    { role: "Founder & MD", company: "ALGOLex Solutions", duration: "2023 - Present", description: "Building AI products and providing training in Quantum AI & Data Science." }
+                    { role: "Assistant Professor", company: "SMIT College", duration: "2024 - Present", description: "Teaching CSE subjects and guiding student research projects in AI/ML." },
+                    { role: "Founder & MD", company: "ALGOLex Solutions", duration: "2023 - Present", description: "Building AI/ML products and providing specialized training." }
                 ];
-                skillsData = ["Python", "Quantum Computing", "Machine Learning", "Teaching", "Research", "LangChain"];
+                skillsData = ["Python", "Quantum Computing", "Machine Learning", "Teaching", "Research", "LangChain", "Data Science"];
                 
                 renderEducationList();
                 renderExperienceList();
