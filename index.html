@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Generator • Mukesh</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .resume-paper {
+            box-shadow: 0 10px 30px -15px rgb(0 0 0 / 0.1), 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+        .section-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            letter-spacing: -0.025em;
+        }
+        .form-input {
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        .resume-section {
+            margin-bottom: 1.25rem;
+        }
+        .entry {
+            transition: all 0.2s ease;
+        }
+        .preview-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #resume-preview, #resume-preview * { visibility: visible; }
+            #resume-preview { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <!-- Header -->
+    <header class="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-10 h-10 bg-violet-600 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-file-lines text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight">ResumeGen</h1>
+                    <p class="text-xs text-zinc-500 -mt-1">by Mukesh Kumar</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-x-2">
+                <button onclick="toggleDarkMode()" 
+                        class="px-4 py-2 text-sm flex items-center gap-x-2 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block"></i>
+                    <span class="hidden sm:inline">Theme</span>
+                </button>
+                
+                <button onclick="exportToPDF()" 
+                        class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-2xl flex items-center gap-x-2 transition-all">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Export PDF</span>
+                </button>
+                
+                <button onclick="resetAll()" 
+                        class="px-4 py-2.5 text-sm border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-undo"></i>
+                    <span class="hidden sm:inline">Reset</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            
+            <!-- FORM SECTION -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Personal Info -->
+                <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6">
+                    <h2 class="font-semibold text-lg mb-4 flex items-center gap-x-2">
+                        <i class="fa-solid fa-user text-violet-500"></i> 
+                        Personal Information
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-medium text-zinc-500">Full Name</label>
+                                <input id="fullName" type="text" value="Mukesh Kumar Singh" 
+                                       oninput="updatePreview()" 
+                                       class="form-input w-full mt-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium text-zinc-500">Job Title</label>
+                                <input id="jobTitle" type="text" value="Professor | Quantum AI Researcher" 
+                                       oninput="updatePreview()" 
+                                       class="form-input w-full mt-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-medium text-zinc-500">Email</label>
+                                <input id="email" type="email" value="mukesh@sm it.edu" 
+                                       oninput="updatePreview()" 
+                                       class="form-input w-full mt-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium text-zinc-500">Phone</label>
+                                <input id="phone" type="tel" value="+91 98765 43210" 
+                                       oninput="updatePreview()" 
+                                       class="form-input w-full mt-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-zinc-500">Location</label>
+                            <input id="location" type="text" value="Chennai, Tamil Nadu" 
+                                   oninput="updatePreview()" 
+                                   class="form-input w-full mt-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-zinc-500">LinkedIn / Portfolio</label>
+                            <input id="linkedin" type="text" value="linkedin.com/in/mukeshkumarsingh" 
+                                   oninput="updatePreview()" 
+                                   class="form-input w-full mt-1 px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Education -->
+                <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-semibold text-lg flex items-center gap-x-2">
+                            <i class="fa-solid fa-graduation-cap text-violet-500"></i> Education
+                        </h2>
+                        <button onclick="addEducation()" class="text-xs px-3 py-1.5 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-xl font-medium flex items-center gap-x-1 hover:bg-violet-200">
+                            <i class="fa-solid fa-plus text-xs"></i> Add
+                        </button>
+                    </div>
+                    <div id="educationList" class="space-y-3"></div>
+                </div>
+
+                <!-- Experience -->
+                <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-semibold text-lg flex items-center gap-x-2">
+                            <i class="fa-solid fa-briefcase text-violet-500"></i> Work Experience
+                        </h2>
+                        <button onclick="addExperience()" class="text-xs px-3 py-1.5 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-xl font-medium flex items-center gap-x-1 hover:bg-violet-200">
+                            <i class="fa-solid fa-plus text-xs"></i> Add
+                        </button>
+                    </div>
+                    <div id="experienceList" class="space-y-3"></div>
+                </div>
+
+                <!-- Skills -->
+                <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6">
+                    <h2 class="font-semibold text-lg mb-4 flex items-center gap-x-2">
+                        <i class="fa-solid fa-lightbulb text-violet-500"></i> Skills
+                    </h2>
+                    <div class="flex gap-2 mb-3">
+                        <input id="skillInput" type="text" placeholder="Add skill (e.g. Python)" 
+                               class="flex-1 px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm"
+                               onkeypress="if(event.key === 'Enter') addSkill()">
+                        <button onclick="addSkill()" class="px-4 py-2 bg-violet-600 text-white rounded-2xl text-sm font-medium">Add</button>
+                    </div>
+                    <div id="skillsList" class="flex flex-wrap gap-2"></div>
+                </div>
+
+            </div>
+
+            <!-- LIVE PREVIEW -->
+            <div class="lg:col-span-3">
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <div class="font-semibold text-lg">Live Preview</div>
+                    <div class="text-xs px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full font-medium">Updates instantly</div>
+                </div>
+                
+                <div id="resume-preview" class="resume-paper bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-10 max-w-[210mm] mx-auto text-zinc-800 dark:text-zinc-200">
+                    
+                    <!-- Header -->
+                    <div class="text-center border-b border-zinc-200 dark:border-zinc-700 pb-6 mb-6">
+                        <h1 id="previewName" class="text-4xl font-bold tracking-tighter"></h1>
+                        <p id="previewTitle" class="text-xl text-violet-600 dark:text-violet-400 mt-1 font-medium"></p>
+                        
+                        <div class="flex justify-center gap-x-6 text-sm mt-4 text-zinc-600 dark:text-zinc-400">
+                            <div><i class="fa-solid fa-envelope mr-1.5"></i> <span id="previewEmail"></span></div>
+                            <div><i class="fa-solid fa-phone mr-1.5"></i> <span id="previewPhone"></span></div>
+                            <div><i class="fa-solid fa-location-dot mr-1.5"></i> <span id="previewLocation"></span></div>
+                        </div>
+                        <div class="text-sm mt-1 text-violet-600 dark:text-violet-400" id="previewLinkedin"></div>
+                    </div>
+
+                    <!-- Education Preview -->
+                    <div class="resume-section">
+                        <h3 class="section-title text-lg font-semibold border-b border-zinc-300 dark:border-zinc-700 pb-1 mb-3 text-violet-700 dark:text-violet-400">EDUCATION</h3>
+                        <div id="previewEducation"></div>
+                    </div>
+
+                    <!-- Experience Preview -->
+                    <div class="resume-section">
+                        <h3 class="section-title text-lg font-semibold border-b border-zinc-300 dark:border-zinc-700 pb-1 mb-3 text-violet-700 dark:text-violet-400">EXPERIENCE</h3>
+                        <div id="previewExperience"></div>
+                    </div>
+
+                    <!-- Skills Preview -->
+                    <div class="resume-section">
+                        <h3 class="section-title text-lg font-semibold border-b border-zinc-300 dark:border-zinc-700 pb-1 mb-3 text-violet-700 dark:text-violet-400">SKILLS</h3>
+                        <div id="previewSkills" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let educationData = [];
+        let experienceData = [];
+        let skillsData = [];
+
+        function saveToLocalStorage() {
+            const data = {
+                personal: {
+                    fullName: document.getElementById('fullName').value,
+                    jobTitle: document.getElementById('jobTitle').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    location: document.getElementById('location').value,
+                    linkedin: document.getElementById('linkedin').value
+                },
+                education: educationData,
+                experience: experienceData,
+                skills: skillsData
+            };
+            localStorage.setItem('resumeData', JSON.stringify(data));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('resumeData');
+            if (!saved) return;
+
+            const data = JSON.parse(saved);
+
+            // Personal
+            if (data.personal) {
+                document.getElementById('fullName').value = data.personal.fullName || '';
+                document.getElementById('jobTitle').value = data.personal.jobTitle || '';
+                document.getElementById('email').value = data.personal.email || '';
+                document.getElementById('phone').value = data.personal.phone || '';
+                document.getElementById('location').value = data.personal.location || '';
+                document.getElementById('linkedin').value = data.personal.linkedin || '';
+            }
+
+            // Education
+            if (data.education) {
+                educationData = data.education;
+                renderEducationList();
+            }
+
+            // Experience
+            if (data.experience) {
+                experienceData = data.experience;
+                renderExperienceList();
+            }
+
+            // Skills
+            if (data.skills) {
+                skillsData = data.skills;
+                renderSkills();
+            }
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            // Personal
+            document.getElementById('previewName').innerText = document.getElementById('fullName').value || 'Your Name';
+            document.getElementById('previewTitle').innerText = document.getElementById('jobTitle').value || 'Your Title';
+            document.getElementById('previewEmail').innerText = document.getElementById('email').value;
+            document.getElementById('previewPhone').innerText = document.getElementById('phone').value;
+            document.getElementById('previewLocation').innerText = document.getElementById('location').value;
+            
+            const linkedin = document.getElementById('linkedin').value;
+            document.getElementById('previewLinkedin').innerHTML = linkedin ? `<i class="fa-brands fa-linkedin mr-1"></i> ${linkedin}` : '';
+
+            // Education
+            const eduContainer = document.getElementById('previewEducation');
+            eduContainer.innerHTML = '';
+            educationData.forEach(edu => {
+                const div = document.createElement('div');
+                div.className = 'mb-4';
+                div.innerHTML = `
+                    <div class="flex justify-between">
+                        <div class="font-semibold">${edu.degree}</div>
+                        <div class="text-sm text-zinc-500">${edu.year}</div>
+                    </div>
+                    <div class="text-sm">${edu.institution}</div>
+                    ${edu.score ? `<div class="text-xs text-zinc-500">${edu.score}</div>` : ''}
+                `;
+                eduContainer.appendChild(div);
+            });
+
+            // Experience
+            const expContainer = document.getElementById('previewExperience');
+            expContainer.innerHTML = '';
+            experienceData.forEach(exp => {
+                const div = document.createElement('div');
+                div.className = 'mb-4';
+                div.innerHTML = `
+                    <div class="flex justify-between">
+                        <div>
+                            <span class="font-semibold">${exp.role}</span> 
+                            <span class="text-zinc-500">at ${exp.company}</span>
+                        </div>
+                        <div class="text-sm text-zinc-500">${exp.duration}</div>
+                    </div>
+                    <div class="text-sm mt-1 text-zinc-600 dark:text-zinc-400">${exp.description}</div>
+                `;
+                expContainer.appendChild(div);
+            });
+
+            // Skills
+            const skillContainer = document.getElementById('previewSkills');
+            skillContainer.innerHTML = '';
+            skillsData.forEach(skill => {
+                const span = document.createElement('span');
+                span.className = 'px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-sm rounded-full';
+                span.innerText = skill;
+                skillContainer.appendChild(span);
+            });
+
+            saveToLocalStorage();
+        }
+
+        // Education Functions
+        function addEducation() {
+            const degree = prompt('Degree / Course (e.g. PhD in Quantum AI)') || 'PhD Quantum AI';
+            const institution = prompt('Institution') || 'Vel Tech University';
+            const year = prompt('Year / Duration') || '2023 - 2026';
+            const score = prompt('CGPA / Percentage (optional)') || '';
+
+            educationData.push({ degree, institution, year, score });
+            renderEducationList();
+            updatePreview();
+        }
+
+        function renderEducationList() {
+            const container = document.getElementById('educationList');
+            container.innerHTML = '';
+
+            educationData.forEach((edu, index) => {
+                const div = document.createElement('div');
+                div.className = 'entry bg-zinc-50 dark:bg-zinc-800 p-3 rounded-2xl text-sm';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium">${edu.degree}</div>
+                            <div class="text-xs text-zinc-500">${edu.institution} • ${edu.year}</div>
+                        </div>
+                        <button onclick="deleteEducation(${index})" class="text-red-500 hover:text-red-600"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function deleteEducation(index) {
+            educationData.splice(index, 1);
+            renderEducationList();
+            updatePreview();
+        }
+
+        // Experience Functions
+        function addExperience() {
+            const role = prompt('Job Title / Role') || 'Assistant Professor';
+            const company = prompt('Company / Institution') || 'SMIT College';
+            const duration = prompt('Duration') || '2024 - Present';
+            const description = prompt('Short description') || 'Teaching CSE subjects and guiding research projects.';
+
+            experienceData.push({ role, company, duration, description });
+            renderExperienceList();
+            updatePreview();
+        }
+
+        function renderExperienceList() {
+            const container = document.getElementById('experienceList');
+            container.innerHTML = '';
+
+            experienceData.forEach((exp, index) => {
+                const div = document.createElement('div');
+                div.className = 'entry bg-zinc-50 dark:bg-zinc-800 p-3 rounded-2xl text-sm';
+                div.innerHTML = `
+                    <div class="flex justify-between">
+                        <div class="font-medium">${exp.role} at ${exp.company}</div>
+                        <button onclick="deleteExperience(${index})" class="text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                    <div class="text-xs text-zinc-500">${exp.duration}</div>
+                    <div class="text-xs mt-1">${exp.description}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function deleteExperience(index) {
+            experienceData.splice(index, 1);
+            renderExperienceList();
+            updatePreview();
+        }
+
+        // Skills
+        function addSkill() {
+            const input = document.getElementById('skillInput');
+            if (!input.value.trim()) return;
+            skillsData.push(input.value.trim());
+            input.value = '';
+            renderSkills();
+            updatePreview();
+        }
+
+        function renderSkills() {
+            const container = document.getElementById('skillsList');
+            container.innerHTML = '';
+            skillsData.forEach((skill, index) => {
+                const span = document.createElement('span');
+                span.className = 'px-3 py-1 bg-zinc-200 dark:bg-zinc-700 text-sm rounded-full flex items-center gap-x-2';
+                span.innerHTML = `${skill} <button onclick="deleteSkill(${index})" class="text-red-500 ml-1"><i class="fa-solid fa-times text-xs"></i></button>`;
+                container.appendChild(span);
+            });
+        }
+
+        function deleteSkill(index) {
+            skillsData.splice(index, 1);
+            renderSkills();
+            updatePreview();
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const name = document.getElementById('fullName').value || 'Resume';
+            const title = document.getElementById('jobTitle').value || '';
+            
+            doc.setFontSize(22);
+            doc.text(name, 105, 20, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text(title, 105, 28, { align: 'center' });
+            
+            doc.setFontSize(11);
+            let y = 45;
+            
+            // Education
+            doc.text('EDUCATION', 20, y);
+            y += 8;
+            educationData.forEach(edu => {
+                doc.text(`${edu.degree} - ${edu.institution} (${edu.year})`, 20, y);
+                y += 7;
+            });
+            
+            y += 5;
+            doc.text('EXPERIENCE', 20, y);
+            y += 8;
+            experienceData.forEach(exp => {
+                doc.text(`${exp.role} at ${exp.company} (${exp.duration})`, 20, y);
+                y += 6;
+                doc.text(exp.description, 25, y);
+                y += 8;
+            });
+            
+            y += 5;
+            doc.text('SKILLS', 20, y);
+            y += 8;
+            doc.text(skillsData.join(', '), 20, y);
+            
+            doc.save(`${name.replace(/ /g, '_')}_Resume.pdf`);
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+        }
+
+        function resetAll() {
+            if (!confirm('Reset everything?')) return;
+            localStorage.removeItem('resumeData');
+            location.reload();
+        }
+
+        function init() {
+            // Load saved data
+            loadFromLocalStorage();
+
+            // Initial preview
+            updatePreview();
+
+            // Dark mode
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.documentElement.classList.add('dark');
+            }
+
+            // Auto update on input
+            const inputs = document.querySelectorAll('#fullName, #jobTitle, #email, #phone, #location, #linkedin');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+            });
+
+            // Add some sample data if empty
+            if (educationData.length === 0 && experienceData.length === 0) {
+                // Sample data for first time
+                educationData = [
+                    { degree: "PhD in Quantum AI (Pursuing)", institution: "Vel Tech University", year: "2024 - Present", score: "CGPA: 8.2" },
+                    { degree: "M.Tech Computer Science", institution: "Vel Tech", year: "2021 - 2023", score: "CGPA: 7.29" }
+                ];
+                experienceData = [
+                    { role: "Assistant Professor", company: "SMIT College", duration: "2024 - Present", description: "Teaching CSE subjects and guiding student projects in AI/ML." },
+                    { role: "Founder & MD", company: "ALGOLex Solutions", duration: "2023 - Present", description: "Building AI products and providing training in Quantum AI & Data Science." }
+                ];
+                skillsData = ["Python", "Quantum Computing", "Machine Learning", "Teaching", "Research", "LangChain"];
+                
+                renderEducationList();
+                renderExperienceList();
+                renderSkills();
+                updatePreview();
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
